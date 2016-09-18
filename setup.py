@@ -1,7 +1,7 @@
 try:
-    from distutils.core import setup
-except ImportError:
     from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
 from sphinx_fakeinv import __author__, __license__, __version__
 
