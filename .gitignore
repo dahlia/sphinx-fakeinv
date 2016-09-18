@@ -1,0 +1,6 @@
+*.inv
+*.pyc
+.*.pyc
+.cache
+.tox
+MANIFEST

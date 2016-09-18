@@ -1,4 +1,11 @@
+#!/usr/bin/env python
+from __future__ import print_function
+
+import itertools
+import os.path
 import pkgutil
+import re
+import sys
 import types
 import zlib
 
@@ -88,3 +95,44 @@ def print_inventory(file_, package, version, objects):
         file_.write(code)
     file_.write(codec.flush())
     file_.flush()
+
+
+def main(argv=sys.argv, stdout=sys.stdout, stderr=sys.stderr):
+    if len(argv) != 2:
+        print('usage:', argv[0], 'PACKAGE', file=stderr)
+        return sys.exit(1)
+    _, pkg, = argv
+    if not re.match(r'((^|\.)[^\d\W]\w*)+$', pkg) or pkg.endswith('.py'):
+        if '/' in pkg or pkg.endswith('.py'):
+            print('error:', pkg, 'is not a valid Python package/module name,',
+                  'but seems a file path.',
+                  file=stderr)
+        else:
+            print('error:', pkg, 'is not a valid Python package/module name.',
+                  file=stderr)
+        return sys.exit(2)
+    elif '.' in pkg:
+        print('error:', pkg, 'is not a root package.', file=stderr)
+        return sys.exit(2)
+    objects = []
+    byte_stdout = stdout if isinstance('', bytes) else stdout.buffer
+    try:
+        modules = scan_package(pkg)
+        for module in modules:
+            objects = itertools.chain(objects, scan_objects(module))
+        root_pkg = __import__(pkg)
+        version = getattr(root_pkg, '__version__', 'unknown')
+        print_inventory(byte_stdout, pkg, version, objects)
+    except ImportError as e:
+        print('error:', e, file=stderr)
+        return sys.exit(2)
+    return sys.exit(0)
+
+
+def console_scripts_main(argv=sys.argv, stdout=sys.stdout, stderr=sys.stderr):
+    prog, _ = os.path.splitext(os.path.basename(argv[0]))
+    return main([prog] + list(argv[1:]), stdout, stderr)
+
+
+if __name__ == '__main__':
+    main()

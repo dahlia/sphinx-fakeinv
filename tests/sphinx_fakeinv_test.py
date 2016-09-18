@@ -4,7 +4,10 @@ import re
 import types
 import zlib
 
-from sphinx_fakeinv import print_inventory, scan_objects, scan_package
+from pytest import fixture, mark, raises
+
+from sphinx_fakeinv import (console_scripts_main, main,
+                            print_inventory, scan_objects, scan_package)
 
 __all__ = ('SAMPLE_DATA', 'SampleClass', 'SampleClass2', 'SampleError',
            'import_string',
@@ -102,6 +105,82 @@ tests.sphinx_fakeinv_test py:module 0 . -
 tests.sphinx_fakeinv_test.SAMPLE_DATA py:data 1 . -
 tests.sphinx_fakeinv_test.SampleClass py:class 1 . -
 '''
+
+
+@fixture
+def fx_stdouterr():
+    def stream():
+        s = io.BytesIO()
+        if isinstance('', bytes):
+            return s, lambda as_bytes=True: s.getvalue()
+        t = io.TextIOWrapper(s)
+
+        def getvalue(as_bytes=False):
+            if as_bytes:
+                return s.getvalue()
+            offset = t.tell()
+            t.seek(0)
+            value = t.read()
+            t.seek(offset)
+            return value
+        return t, getvalue
+    stdout, out_getvalue = stream()
+    stderr, err_getvalue = stream()
+    return {'stdout': stdout, 'stderr': stderr}, out_getvalue, err_getvalue
+
+
+@mark.parametrize('argv', [
+    [],                          # too few
+    ['testpkg', 'many'],         # too many
+    ['testpkg', 'too', 'many'],  # too many
+])
+def test_main_wrong_argv_length(argv, fx_stdouterr):
+    kwargs, out, err = fx_stdouterr
+    with raises(SystemExit) as e:
+        main(['prog'] + argv, **kwargs)
+    assert e.value.code == 1
+    assert out() == ''
+    assert err() == 'usage: prog PACKAGE\n'
+
+
+@mark.parametrize('path', ['foo/bar', 'foobar.py'])
+def test_main_file_path_not_package_name(path, fx_stdouterr):
+    kwargs, out, err = fx_stdouterr
+    with raises(SystemExit) as e:
+        main(['prog', path], **kwargs)
+    assert e.value.code == 2
+    assert out() == ''
+    assert err() == ('error: {0} is not a valid Python package/module name, '
+                     'but seems a file path.\n').format(path)
+
+
+@mark.parametrize('invalid_pkgname', ['foo$bar', 'foo@bar', '^foobar'])
+def test_main_invalid_package_name(invalid_pkgname, fx_stdouterr):
+    kwargs, out, err = fx_stdouterr
+    with raises(SystemExit) as e:
+        main(['prog', invalid_pkgname], **kwargs)
+    assert e.value.code == 2
+    assert out() == ''
+    assert err() == ('error: {0} is not a valid Python package/module '
+                     'name.\n').format(invalid_pkgname)
+
+
+def test_main_nonroot_package_name(fx_stdouterr):
+    kwargs, out, err = fx_stdouterr
+    with raises(SystemExit) as e:
+        main(['prog', 'foo.bar'], **kwargs)
+    assert e.value.code == 2
+    assert out() == ''
+    assert err() == 'error: foo.bar is not a root package.\n'
+
+
+def test_console_scripts_main(fx_stdouterr):
+    kwargs, out, err = fx_stdouterr
+    with raises(SystemExit) as e:
+        console_scripts_main(['/abs/path/prog'], **kwargs)
+    assert e.value.code == 1
+    assert out() == ''
+    assert err() == 'usage: prog PACKAGE\n'
 
 
 class SampleClass(object):
