@@ -1,6 +1,14 @@
 ``sphinx-fakeinv``: Generate fake Intersphinx_ inventory
 =========================================================
 
+.. image:: https://badge.fury.io/py/sphinx-fakeinv.svg
+   :target: https://pypi.python.org/pypi/sphinx-fakeinv
+   :alt: Latest PyPI version
+
+.. image:: https://travis-ci.org/dahlia/sphinx-fakeinv.svg
+   :alt: Build Status
+   :target: https://travis-ci.org/dahlia/sphinx-fakeinv
+
 Sometimes we create libraries so tiny that we don't need write docs using
 Sphinx_ for them, but at the same time we may want to link them from
 other docs written using Sphinx.
