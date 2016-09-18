@@ -3,4 +3,6 @@
 .*.pyc
 .cache
 .tox
+build
+dist
 MANIFEST
