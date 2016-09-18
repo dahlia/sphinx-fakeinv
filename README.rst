@@ -9,13 +9,13 @@
    :alt: Build Status
    :target: https://travis-ci.org/dahlia/sphinx-fakeinv
 
-Sometimes we create libraries so tiny that we don't need write docs using
+Sometimes we create so tiny libraries that we don't need write docs using
 Sphinx_ for them, but at the same time we may want to link them from
 other docs written using Sphinx.
 
 This utility helps us to generate a fake ``objects.inv`` file
 (it's also known as Sphinx inventory) so that other Sphinx docs can link
-it though the Intersphinx_ extension.
+it through the Intersphinx_ extension.
 
 .. _Sphinx: http://www.sphinx-doc.org/
 .. _intersphinx: http://www.sphinx-doc.org/en/stable/ext/intersphinx.html
