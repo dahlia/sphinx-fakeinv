@@ -10,7 +10,7 @@ import types
 import zlib
 
 __author__ = 'Hong Minhee <hongminhee' "\x40" 'member.fsf.org>'
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 __license__ = 'GPLv3 or later'
 __all__ = ('print_inventory', 'scan_objects', 'scan_package',
            '__author__', '__license__', '__version__')
